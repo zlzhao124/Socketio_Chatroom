@@ -22,10 +22,50 @@ var allRooms = [];
 var allUsers = [];
 var allRoomsPW = {};
 var roomOwner = {};
+var userLocation = {};
+var allRoomUsers = {};
 
 var io = socketio.listen(app);
 io.sockets.on("connection", function (socket) {
-	
+
+    //new user process user info
+    socket.on("newUser", function (data) { // process new user's username and send it back to server side
+    var userInvalid = false;
+    var username = data["username"];
+    if (username == null) {
+        userInvalid = true;
+    }
+    if (!userInvalid) {
+        for (var u in allUsers) {
+            if (allUsers[u] == username) {
+                userInvalid = true;
+              
+            }
+        }
+        if (!userInvalid) {
+            allUsers.push(username);
+            socket.currentUser = username;
+            socket.currentRoom = "lobby";
+            userLocation[socket.currentUser] = "lobby";
+            if (allRoomUsers["lobby"] == null) {
+                allRoomUsers["lobby"] = [];
+            }
+            //userPreviousRoom[username] = null;
+            allRoomUsers["lobby"].push(username);
+            socket.join("lobby");
+            //io.sockets.in(socket.currentRoom).emit("joinRoom", { currentUser: socket.currentUser, currentRoom: socket.currentRoom, currentRoomPW: null, currentUsers: allUsers, joinRoom: false });
+        }
+    }
+    socket.emit("getNewUser", { users: allUsers, username: username, invalid: userInvalid });
+});
+
+
+
+socket.on("updateUser", function (data) { // process update user info and send it back to server side
+    io.sockets.emit("getUserList", { users: allUsers, currentUser: socket.currentUser, newUser: data["newUser"] });
+});
+
+
 
 socket.on("newRoom", function (data) { // process new Room info and send it back to server side
     var roomExist = false;

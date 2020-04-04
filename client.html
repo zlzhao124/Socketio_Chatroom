@@ -1,31 +1,94 @@
 <!DOCTYPE html>
-<html>
-   <head>
-    <title>My Chat Room</title>
-    <style>
+<html lang="en">
+
+<head>
+  <title>Chat Room</title>
+ <style>
+    
 body{
     background:burlywood;
     text-align: center;
 }
-    </style>
-      <script src="/socket.io/socket.io.js"></script>
+ </style>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script>
 
-     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-      <script type ="text/javascript">
-      var socketio = io.connect();
+    var socketio = io.connect();
 
-// get username
-socketio.on("connect", function () {
-  var user = prompt("Enter the Username:");
-  socketio.emit("newUser", { username: user });
-});
+    // enter username
+    socketio.on("connect", function () {
+      var user = prompt("Enter the Username:");
+      socketio.emit("newUser", { username: user });
+    });
 
+    // print current rooms
+    socketio.on("printRoomList", function (data) {
+      var allroomlist = data.rooms;
+      document.getElementById("allroom").innerHTML = "";
+      for (var r in allroomlist) {
+        document.getElementById("allroom").innerHTML += allroomlist[r] + "<br>"+ "<br>";
+      }
+    });
+
+
+    // list usernames of current room
+    socketio.on("getUserList", function (data) {
+      var allUsers = data.users;
+      //var currentUser = data.currentUser;
+      //var isNewUser = data.newUser;
+      document.getElementById("userList").innerHTML = "";
+      for (var v in allUsers) {
+        document.getElementById("userList").innerHTML += allUsers[v] + "<br>";
+      }
+      if (isNewUser) {
+        document.getElementById("lobby").appendChild(document.createTextNode("New User " + currentUser + " has entered the lobby"));
+        document.getElementById("lobby").appendChild(document.createElement("br"));
+      }
+    });
+
+    // check if user exists or if username is valid, then display in lobby
+    socketio.on("getNewUser", function (data) {
+      var user = data.username;
+      var allUsers = data.users;
+    
+      if (data.invalid) {
+        if (data.exist) {
+          user = prompt("The User already exists! Try Again!");
+        }
+        else {
+          user = prompt("Invalid Username! Try Again!");
+        }
+        socketio.emit("newUser", { username: user });
+      }
+      else {
+        lobbyDisplay();
+        //socketio.emit("updateRoom");
+        //socketio.emit("updateUser", { newUser: true });
+      }
+    });
+
+
+    //create new room is successful
+    socketio.on("getNewRoom", function (data) {
+      var room = data.roomName;
+      var allroomlist = data.rooms;
+      if (data.exist) {
+        console.log("The room already exists!");
+      }
+      else {
+        document.getElementById("allroom").appendChild(document.createTextNode(room));
+        document.getElementById("lobby").appendChild(document.createTextNode("New room " + room + " has been created"));
+        document.getElementById("lobby").appendChild(document.createElement("br"));
+      }
+    });
 
     // create new user
     function createNewUser() {
       var username = document.getElementById("username").value;
       socketio.emit("newUser", { username: username });
     }
+
     // create new room
     function createNewRoom() {
       var rmName = document.getElementById("roomname").value;
@@ -56,18 +119,34 @@ socketio.on("connect", function () {
       socketio.emit("leaveRoom");
     }
 
-//n public room
+    //display
+    function lobbyDisplay() {
+      document.getElementsByTagName("h1")[0].style.display = "block";
+      
+      document.getElementById("sidebar").style.display = "block";
+      document.getElementById("lobby").style.display = "block";
+    }
+
+    // when the client hits ENTER on their keyboard
+    $(function () {
+      $('#message_input').keypress(function (e) {
+        if (e.which == 13) {
+          $(this).blur();
+          $('#msg_button').focus().click();
+        }
+      });
+    });
+
     $(function () {
       // when the client hits ENTER on their keyboard
       $('#nRoom').keypress(function (e) {
         if (e.which == 13) {
           $(this).blur();
-          $('#createRoomButton').focus().click();
+          $('#createRoom').focus().click();
         }
       });
     });
 
-// private room
     $(function () {
       // when the client hits ENTER on their keyboard
       $('#nRoomPW').keypress(function (e) {
@@ -78,63 +157,53 @@ socketio.on("connect", function () {
       });
     });
 
-    
-
-
-  // check if create new room is successful
-  socketio.on("getNewRoom", function (data) {
-      var room = data.roomName;
-      var allRooms = data.rooms;
-      var exist = data.exist;
-      if (exist) {
-        console.log("The room already exists!");
-      }
-      else {
-        document.getElementById("roomList").appendChild(document.createTextNode(room));
-        document.getElementById("lobby").appendChild(document.createTextNode("New room " + room + " has been created"));
-        document.getElementById("lobby").appendChild(document.createElement("br"));
-      }
+    $(function () {
+      // when the client hits ENTER on their keyboard
+      $('#rmRoom').keypress(function (e) {
+        if (e.which == 13) {
+          $(this).blur();
+          $('#removeRoomButton').focus().click();
+        }
+      });
     });
 
-
-
-
-
-
-      socketio.on("message_to_client",function(data) {
-         //Append an HR thematic break and the escaped HTML of the new message
-         document.getElementById("chatlog").appendChild(document.createElement("hr"));
-         document.getElementById("chatlog").appendChild(document.createTextNode(data['message']));
+    $(function () {
+      // when the client hits ENTER on their keyboard
+      $('#enter').keypress(function (e) {
+        if (e.which == 13) {
+          $(this).blur();
+          $('#enterRoomButton').focus().click();
+        }
       });
+    });
 
-      function sendMessage(){
-         var msg = document.getElementById("message_input").value;
-         socketio.emit("message_to_server", {message:msg});
-      }
+ 
 
+  </script>
+</head>
 
+<body>
+  <h1 style="display: none">Chat Room</h1>
+  <div id="msg_send" style="display: none">
+  
+    <input type="text" id="message_input" />
+    <button id="msg" onclick="sendMessage()">send</button>
+  </div>
+  <div id="sidebar" style="display: none">
+    
+    <hr>
+    <h3>Current All Users:</h3>
+    <div id="userList"></div>
+    <hr>
 
+    <h3>Current All Rooms:</h3>
+    <div id="allroom"></div>
+    <hr>
 
-
-
-
-      </script>
-   </head>
-
-
-   <body>
-    <h1 >Welcome to the Chat Room</h1>
-    <h3>New user Login</h3>
-    <div id="login">
-    <input type="text" id="login_input" placeholder="nickname" />
-    <button id="login_button">Login</button>
-    </div>
-
-
-   <h3>Create a Room</h3>
+    <h3>Create a Room</h3>
     <div id="nRoom">
       <input type="text" id="roomname" placeholder="Room Name">
-      <button id="createRoomButton" onclick="createNewRoom()">Create</button>
+      <button id="createRoom" onclick="createNewRoom()">Create</button>
       <hr>
     </div>
 
@@ -160,21 +229,16 @@ socketio.on("connect", function () {
       <hr>
     </div>
 
-
-    <h3>Current All Rooms:</h3>
-    <div id="roomList"></div>
-    <hr>
-
-
-    <input type=text" id="message_input"/>//send msg
-    <button onclick="sendMessage()">send</button>
-    <div id="chatlog"></div>
-
-    <div id="msg_send" style="display: none">
+  
+        <hr>
+        <h3>Current All Users:</h3>
+        <div id="userList"></div>
+        <hr>
+</div>
 
 
+  <div id="lobby" style="display: none"></div>
+  <div id="chatlog" style="display: none"></div>
+</body>
 
-
-
-   </body>
 </html>
