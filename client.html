@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+   <head>
+    <title>My Chat Room</title>
+    <style>
+body{
+    background:burlywood;
+    text-align: center;
+}
+    </style>
+      <script src="/socket.io/socket.io.js"></script>
+
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <script type ="text/javascript">
+      var socketio = io.connect();
+
+// get username
+socketio.on("connect", function () {
+  var user = prompt("Enter the Username:");
+  socketio.emit("newUser", { username: user });
+});
+
+
+    // create new user
+    function createNewUser() {
+      var username = document.getElementById("username").value;
+      socketio.emit("newUser", { username: username });
+    }
+    // create new room
+    function createNewRoom() {
+      var rmName = document.getElementById("roomname").value;
+      socketio.emit("newRoom", { roomName: rmName });
+    }
+
+    // create new private room
+    function createNewRoomPW() {
+      var rmName = document.getElementById("roomnamePW").value;
+      var rmPW = document.getElementById("roomPW").value;
+      socketio.emit("newRoomPW", { roomName: rmName, roomPW: rmPW });
+    }
+
+    // remove room
+    function removeRoom() {
+      var rmName = document.getElementById("removeRoom").value;
+      socketio.emit("removeRoom", { roomName: rmName });
+    }
+
+    // enter room
+    function enterRoom() {
+      var enterRmName = document.getElementById("enterRoom").value;
+      socketio.emit("enterRoom", { roomName: enterRmName });
+    }
+
+    // quit room
+    function quitRoom() {
+      socketio.emit("leaveRoom");
+    }
+
+//n public room
+    $(function () {
+      // when the client hits ENTER on their keyboard
+      $('#nRoom').keypress(function (e) {
+        if (e.which == 13) {
+          $(this).blur();
+          $('#createRoomButton').focus().click();
+        }
+      });
+    });
+
+// private room
+    $(function () {
+      // when the client hits ENTER on their keyboard
+      $('#nRoomPW').keypress(function (e) {
+        if (e.which == 13) {
+          $(this).blur();
+          $('#createPrivateRoomButton').focus().click();
+        }
+      });
+    });
+
+    
+
+
+  // check if create new room is successful
+  socketio.on("getNewRoom", function (data) {
+      var room = data.roomName;
+      var allRooms = data.rooms;
+      var exist = data.exist;
+      if (exist) {
+        console.log("The room already exists!");
+      }
+      else {
+        document.getElementById("roomList").appendChild(document.createTextNode(room));
+        document.getElementById("lobby").appendChild(document.createTextNode("New room " + room + " has been created"));
+        document.getElementById("lobby").appendChild(document.createElement("br"));
+      }
+    });
+
+
+
+
+
+
+      socketio.on("message_to_client",function(data) {
+         //Append an HR thematic break and the escaped HTML of the new message
+         document.getElementById("chatlog").appendChild(document.createElement("hr"));
+         document.getElementById("chatlog").appendChild(document.createTextNode(data['message']));
+      });
+
+      function sendMessage(){
+         var msg = document.getElementById("message_input").value;
+         socketio.emit("message_to_server", {message:msg});
+      }
+
+
+
+
+
+
+
+      </script>
+   </head>
+
+
+   <body>
+    <h1 >Welcome to the Chat Room</h1>
+    <h3>New user Login</h3>
+    <div id="login">
+    <input type="text" id="login_input" placeholder="nickname" />
+    <button id="login_button">Login</button>
+    </div>
+
+
+   <h3>Create a Room</h3>
+    <div id="nRoom">
+      <input type="text" id="roomname" placeholder="Room Name">
+      <button id="createRoomButton" onclick="createNewRoom()">Create</button>
+      <hr>
+    </div>
+
+    <h3>Create a Private Room</h3>
+    <div id="nRoomPW">
+      <input type="text" id="roomnamePW" placeholder="Room Name">
+      <input type="password" id="roomPW" placeholder="Password">
+      <button id="createPrivateRoomButton" onclick="createNewRoomPW()">Create</button>
+      <hr>
+    </div>
+
+    <h3>Remove a Room</h3>
+    <div id="rmRoom">
+      <input type="text" id="removeRoom" placeholder="Remove Room Name">
+      <button id="removeRoomButton" onclick="removeRoom()">Remove</button>
+      <hr>
+    </div>
+
+    <div id="enter">
+      <h3>Enter an Existing room:</h3>
+      <input type="text" id="enterRoom" />
+      <button id="enterRoomButton" onclick="enterRoom()">Enter Room</button>
+      <hr>
+    </div>
+
+
+    <h3>Current All Rooms:</h3>
+    <div id="roomList"></div>
+    <hr>
+
+
+    <input type=text" id="message_input"/>//send msg
+    <button onclick="sendMessage()">send</button>
+    <div id="chatlog"></div>
+
+    <div id="msg_send" style="display: none">
+
+
+
+
+
+   </body>
+</html>
