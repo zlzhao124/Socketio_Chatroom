@@ -23,9 +23,10 @@
       function switchRoom(room){
          socketio.emit('switchRoom', room);
       }
-
+                
         //a previous 330 student showed me her project, and hers used hrefs, so I tried to emulate that because I thought it was a good idea
-      socketio.on("updateRoom", function(rooms, current_room){
+      //in addition, some of the code for this function is from http://psitsmike.com/2011/10/node-js-and-socket-io-multiroom-chat-tutorial/
+        socketio.on("updateRoom", function(rooms, current_room){
          $("#allroom").empty();//clear the list of rooms
         for(var i=0; i<rooms.length; i++){
                 if(rooms[i].roomName == current_room){
@@ -36,7 +37,8 @@
             }
         }
       });
-        
+
+/*
       socketio.on("updateRoomPWD", function(rooms, current_room){
          $("#allroom").empty();//clear the list of rooms
         for(var i=0; i<rooms.length; i++){
@@ -47,30 +49,25 @@
                 $('#allroom').append('<div><a href="#" onclick="switchRoom(\''+rooms[i].roomName+'\')">' + rooms[i].roomName + '</a></div>');
             }
         }
-      });
-        
-
-
-
-
+      });*/
 
       socketio.on("message_to_client",function(username, data) {
          var message = document.getElementById("chatlog").appendChild(document.createElement("p"));
          message.appendChild(document.createTextNode(username+ ": " + data['message']));
       });
 
-
       function sendMessage(){
         var msg = document.getElementById("message_input").value;
         socketio.emit("message_to_server", {message:msg});
-                $('#message_input').val("");
+        $('#message_input').val("");
       }
-
+      
       function createNewRoom(){
          var roomName = document.getElementById("newRoom").value;
          socketio.emit("addRoom", roomName);
       }
-
+      
+/*
       function createNewRoomPW() {
       var rmName = document.getElementById("roomnamePW").value;
       var rmPW = document.getElementById("roomPW").value;
@@ -85,7 +82,8 @@
           $('#createPWDRoom').focus().click();
         }
       });
-    });
+    });*/
+
 
 
 
@@ -93,14 +91,24 @@
         function pm(){
                 var msg = document.getElementById("pm").value;
                 var receiver = document.getElementById("receiver").value;
-                socketio.emit("pm", receiver, msg);
+                socketio.emit("pm", receiver, {message:msg});
         }
 
 
-        socketio.on("pm2", function(username, msg){
+        socketio.on("pm2", function(username, data){
         var secretMsg = document.getElementById("chatlog").appendChild(document.createElement("p"));
-         secretMsg.appendChild(document.createTextNode("Private Message from" + username + ": " + msg));
+         secretMsg.appendChild(document.createTextNode("Private Message from" + username + ": " + data['message']));
                 });
+
+
+        function kick(){
+                var username = document.getElementById("kickban").value;
+                socketio.emit("kickuser", username);
+        }
+        function ban(){
+                var username = document.getElementById("kickban").value;
+                socketio.emit("banuser", username);
+        }
 
                 $(function(){
                         // when the client hits ENTER on their keyboard
@@ -112,7 +120,7 @@
                         });
                 });
 
-
+                
       </script>
                 <title>Chat Room</title>
                 <style>
@@ -147,6 +155,11 @@
                         Message: <input type="text" id="pm"/>
                         <button onclick="pm()">Send Private Message!</button>
                         </br>
+                        <h3>Kick/Ban User from Current Room</h3>
+                        Enter user to kick/ban: <input type="text" id="kickban"/>
+                        <button onclick="kick()">Kick!</button>
+                        <button onclick="ban()">Ban!</button>
+                                                                                                                                </br>
 ------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -154,3 +167,4 @@
 <div id="chatlog"></div>
 </body>
 </html>
+
