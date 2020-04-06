@@ -16,7 +16,9 @@ var app = http.createServer(function(req, resp){
 });
 app.listen(3456);
 var allUsers={};
+var Owner = {};
 var allRooms = [{'roomName':'lobby'},{'roomName':'sampleroom'}];
+var allRoomspwd = [{'roomName':'private room lobby'},{'roomName':'sampleroom'}];
 
 // Do the Socket.IO magic:
 var io = socketio.listen(app);
@@ -74,6 +76,28 @@ io.sockets.on("connection", function(socket){
                 io.emit('updateRoom', allRooms, socket.currentRoom);
                 });
 
+
+	socket.on("newRoomPW", function (data) {// process new Private room info and send it back to server side
+                var roomExist = false;
+                //allRooms.push({roomName:newRoomPW});
+		var rmName = data["roomName"];
+		var rmPWD = data["roomPW"];
+		for (var r in allRooms) {
+			if (allRooms[r] == rmName) {
+				roomExist = true;
+			}
+		}
+		if (!roomExist) {
+			Owner[rmName] = socket.currentUser;
+			allRooms.push(rmName);
+			allRoomspwd[rmName] = rmPWD;
+			allUsers[rmName] = []
+		}
+		io.emit('updateRoomPWD',allRooms, socket.currentRoom, );
+	});
+
+
+
         socket.on("pm", function(receiver, msg){
                 //private message
                 var sender = socket.currentUser;
@@ -87,4 +111,3 @@ io.sockets.on("connection", function(socket){
                         socket.leave(socket.room);
         });
 });
-

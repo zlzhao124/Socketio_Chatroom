@@ -37,6 +37,21 @@
         }
       });
         
+      socketio.on("updateRoomPWD", function(rooms, current_room){
+         $("#allroom").empty();//clear the list of rooms
+        for(var i=0; i<rooms.length; i++){
+                if(rooms[i].roomName == current_room){
+               $("#allroom").append("<div><b>" + rooms[i].roomName + "</b></div>");
+                    }
+            else{ 
+                $('#allroom').append('<div><a href="#" onclick="switchRoom(\''+rooms[i].roomName+'\')">' + rooms[i].roomName + '</a></div>');
+            }
+        }
+      });
+        
+
+
+
 
 
       socketio.on("message_to_client",function(username, data) {
@@ -55,6 +70,25 @@
          var roomName = document.getElementById("newRoom").value;
          socketio.emit("addRoom", roomName);
       }
+
+      function createNewRoomPW() {
+      var rmName = document.getElementById("roomnamePW").value;
+      var rmPW = document.getElementById("roomPW").value;
+      socketio.emit("newRoomPW", { roomName: rmName, roomPW: rmPW });
+    }
+
+    $(function () {
+      // when the client hits ENTER on their keyboard
+      $('#nRoomPW').keypress(function (e) {
+        if (e.which == 13) {
+          $(this).blur();
+          $('#createPWDRoom').focus().click();
+        }
+      });
+    });
+
+
+
 
         function pm(){
                 var msg = document.getElementById("pm").value;
@@ -99,6 +133,15 @@
                         <h3>Create a new room</h3>
                         <input type="text" id="newRoom"/>
                         <button onclick="createNewRoom()">Create</button>
+
+    <h3>Create a Private Room</h3>
+    <div id="nRoomPW">
+      <input type="text" id="roomnamePW" placeholder="Room Name">
+      <input type="password" id="roomPW" placeholder="Password">
+      <button id="createPWDRoom" onclick="createNewRoomPW()">Create</button>
+      <hr>
+    </div>
+
                         <h3>Private Message</h3>
                         Send pm to: <input type="text" id="receiver"/>
                         Message: <input type="text" id="pm"/>
@@ -111,4 +154,3 @@
 <div id="chatlog"></div>
 </body>
 </html>
-                                                         
