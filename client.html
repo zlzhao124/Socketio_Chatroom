@@ -24,6 +24,7 @@
 
         function switchRoom(room) {
             socketio.emit('switchRoom', room);
+
         }
 
         //a previous 330 student showed me her project, and hers used hrefs, so I tried to emulate that because I thought it was a good idea
@@ -49,7 +50,7 @@
                 else {
                     if (rooms[i].hasOwnProperty('password')) {
                         console.log(rooms[i].hasOwnProperty('password'));
-                        $('#allroom').append('<div><a href="#" onclick="switchRoom(\'' + rooms[i].roomName + '\')">' + rooms[i].roomName + '</a></div>');
+                        $('#allroom').append('<div><a href="#" onclick="privateRoom(\'' + rooms[i].roomName + '\')">' + rooms[i].roomName + '</a></div>');
                     }
                     else {
                         $('#allroom').append('<div><a href="#" onclick="switchRoom(\'' + rooms[i].roomName + '\')">' + rooms[i].roomName + '</a></div>');
@@ -57,6 +58,11 @@
                 }
             }
         });
+
+        //updateroom PWD calls private room, 
+        //private room calls enterpwd
+        //enter pwd call join pwd
+
 
         //check if you successfully joined a password-protected room
          socketio.on("joinpwd", function (data) {
@@ -80,6 +86,22 @@
               socketio.emit("privateroom")
               socketio.emit("updateRoomPWD");
             });
+
+            
+    // list usernames of current room
+    socketio.on("getUserList", function (data) {
+      var allUsers = data.users;
+      var currentUser = data.currentUser;
+      console.log(data.users);
+      document.getElementById("people").innerHTML = "";
+      for (var u in allUsers) {
+        console.log(allUsers[u].name);
+    
+        document.getElementById("people").innerHTML += allUsers[u].name + "<br>";
+      }
+  
+    });
+
 
 
         socketio.on("message_to_client", function (username, data) {
@@ -105,12 +127,6 @@
             var rmPW = document.getElementById("roomPW").value;
             socketio.emit("newRoomPW", { roomName: rmName, roomPW: rmPW });
         }
-
-         //prompt for pwd
-        //  socketio.on("enterpwd", function (room) {
-        //     //when a user is trying to get into a password protected room, prompt them for the password
-        //     socketio.emit("checkPw", room, prompt("What's the Password?"));
-        // });
 
         //enter room pwd
         function privateRoom(room) {
@@ -213,9 +229,12 @@
 
 
     <div id="chatlog"></div>
-    <div id="people"> 
+
     <h3>Current people in the room:</h3>
+    <div id="people"> 
     </div>
+
+
 
 </body>
 

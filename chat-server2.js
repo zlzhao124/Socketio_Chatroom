@@ -1,4 +1,3 @@
-
 var http = require("http"),
 socketio = require("socket.io"),
 fs = require("fs");
@@ -16,6 +15,7 @@ fs.readFile("client.html", function(err, data){
 });
 app.listen(3456);
 var allUsers={};
+var allRoomUsers = {};
 var allRoomspwd={};//store 
 var allRooms = [{'roomName':'lobby', 'creator': ' '},{'roomName':'sampleroom', 'creator': ' '}];
 var socketIDs = {};//IDs of sockets must be stored so one specific socket can be target for private message, kick, and ban
@@ -37,7 +37,7 @@ socket.on('newUser', function(username){
         }
 
         if (!userInvalid){
-              
+
                 var newUser={}; //want to store current room and username inside one variable, and then store that one into a json of usernames
                 socketIDs[username] = socket.id;
                 socket.currentUser = username;
@@ -60,20 +60,30 @@ socket.on('message_to_server', function(data) {
 
 });
 
+socket.on("updateUser", function (data) { // process update user info and send it back to server side
+        io.sockets.emit("getUserList", { users: allUsers, currentUser: socket.currentUser, newUser: data["newUser"] });
+});
+
+
 socket.on("switchRoom", function(newRoom){
                         //switchRoom code was also inspired by http://psitsmike.com/2011/10/node-js-and-socket-io-multiroom-chat-tutorial/
         //this is for switching in and out of rooms. Update all the relevant user information
         //and update who is in the room you just entered and broadcast to everyone in the previous room you left
-
         if (socket.bans.includes(", " + newRoom)){
                 //failure because banned
                 socket.emit('update', 'You are banned from this room!');
         }
-
         else{
+
+        //socket.emit(updateRoomPWD);
+        socket.emit('updateRoomPWD', allRooms, newRoom);
         socket.leave(socket.room);
         socket.join(newRoom);
+        console.log('join');
         allUsers[socket.currentUser].room = newRoom;
+        io.sockets.emit("getUserList", { users: allUsers, currentUser: socket.currentUser });
+        console.log(allUsers);
+        
         console.log("now a user has switched to" + allUsers[socket.currentUser].room);
         socket.emit('update', 'you have connected to ' +newRoom);
         socket.broadcast.to(socket.currentRoom).emit('update', socket.currentUser + ' has left this room');
@@ -91,6 +101,21 @@ socket.on("addRoom", function(addRoom){
         });
 
 
+     
+            	
+socket.on("privateRoom", function(privateRoom){
+		//every private room should open a prompt onclick, redirect to that function in the html
+		for(var i=0; i<rooms.length; i++){
+			console.log(rooms[i].hasOwnProperty('password'));
+			if(rooms[i].roomName == privateRoom){
+				if(rooms[i].hasOwnProperty('password')){
+					socket.emit('joinpwd', privateRoom);
+				}
+			}
+		}
+	});
+        
+        
 
 socket.on("newRoomPW", function (data) {// create new Private room 
         var roomExist = false;
