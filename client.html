@@ -81,7 +81,14 @@
 
     });
 
+    socketio.on("removesuccess", function (data) {
+      var roomname = data.currentRoom;
+      document.getElementById("chatlog").appendChild(document.createTextNode("Room " + roomname + " has been removed!"));
+      document.getElementById("chatlog").appendChild(document.createElement("br"));
+    });
 
+
+    
       socketio.on("message_to_client",function(username, data) {
          var message = document.getElementById("chatlog").appendChild(document.createElement("p"));
          message.appendChild(document.createTextNode(username+ ": " + data['message']));
@@ -136,6 +143,10 @@
          socketio.emit("changename", oldName, newName);
       }
 
+      function removeRoom() {
+      var rmName = document.getElementById("removeRoom").value;
+      socketio.emit("removeRoom", { roomName: rmName });
+    }
 
 
         function pm(){
@@ -209,6 +220,13 @@
       <input type="text" id="old" placeholder="Current Room Name">
       <input type="text" id="newname" placeholder="New Room Name">
       <button id="changename" onclick="changeName()">Change!</button>
+      <hr>
+    </div>
+
+    <h3>Remove a Room</h3>
+    <div id="rmRoom">
+      <input type="text" id="removeRoom" placeholder="Remove Room Name">
+      <button id="removeRoomButton" onclick="removeRoom()">Remove</button>
       <hr>
     </div>
 

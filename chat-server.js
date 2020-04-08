@@ -159,7 +159,52 @@ io.sockets.on("connection", function(socket){
 		}
 		}
 
-		});
+        });
+        //creative p portion remove room
+        socket.on("removeRoom", function (data) { 
+            var rmName = data["roomName"];
+            var Exist = false;
+            for (var r in allRooms) {
+                if (allRooms[r] == rmName) {
+                    Exist = true;
+                }
+            }
+            if (!Exist) {
+                alert("The room doesn't exist!");
+            }
+            else {
+                for(var i=0; i<allRooms.length; i++){
+                if (socket.currentRoom == rmName) {
+                    if (allRooms[i].creator == socket.currentUser) {
+                        // remove room name from allRooms
+                        allRooms.splice(allRooms.indexOf(rmName), 1);
+                        // remove everything associated with the room
+                        delete allRooms[i].creator;
+                        // delete pwd of this room
+                        //how to delete a list of banned user 
+                        for (var u in allUsers[rmName]) {
+                            //change allUSer to the current list of user in the room
+
+                            oldRoom[allUsers[rmName]] = null;
+                            allUsers[username].room = 'lobby';
+                            allUsers["lobby"].push(allUsers[rmName][u]);
+                        }
+                        io.sockets.emit("updateRoom", { currentUser: allRoomUsers[rmName][u], currentRoom: "lobby", currentRoomPW: null, currentUsers: allRoomUsers["lobby"], joinRoom: false });
+                        delete allRoomUsers[rmName];//current list of user in the room
+                        io.sockets.emit("removesuccess", { currentRoom: rmName });
+                    }
+                    else {
+                       alert("You are not the owner of the room, and you cannot delete this room");
+                    }
+                }
+                else {
+                    alert("You need to enter a room to delete!");
+                }
+            }
+        }
+        });
+
+        
 //activates when someone tries to enter a room with a password
 socket.on("privateRoom", function(privateRoom){
                 //every private room should open a prompt onclick, redirect to that function in the html
