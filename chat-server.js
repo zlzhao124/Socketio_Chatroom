@@ -164,13 +164,6 @@ io.sockets.on("connection", function(socket){
 
         socket.on("removeRoom", function (data) { 
             var rmName = data["roomName"];
-            var Exist = false;
-            for (var r=0; r<allRooms.length; r++) {
-                if (allRooms[r].roomName == rmName) {
-                    Exist = true;
-                }
-            }
-            if (Exist)  {
                 for(var i=0; i<allRooms.length; i++){
                 if (allRooms[i].roomName == rmName) {
                     if (allRooms[i].creator == socket.currentUser) {
@@ -188,7 +181,6 @@ io.sockets.on("connection", function(socket){
                                 socket.join('lobby');
                                 socket.currentRoom = 'lobby';
 				allUsers[usersarray[user]].room = 'lobby';
-                                
                            //  updates userlists and roomlists for users 
                                 socket.emit("getUserList",  { users: allUsers, room: 'lobby' });
                 socket.broadcast.to("lobby").emit("getUserList",  { users: allUsers, room: 'lobby' });
@@ -202,7 +194,7 @@ io.sockets.on("connection", function(socket){
 
                 }
             }
-        }
+        
         });
 
 
