@@ -11,5 +11,7 @@ Creative Portion:
 
 - an option for a creator of a room to change the name of a chatroom
 
+- an option for a creator of a room to remove a chatroom
+
 
 Note: we used some code from this tutorial: http://psitsmike.com/2011/10/node-js-and-socket-io-multiroom-chat-tutorial/. Whenever we took code from it to use, we cited it in our code for any block we used it from, and I hope the amount we used isn't too much. Based on the academic integrity policy, I hope our citations are okay.
