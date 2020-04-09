@@ -17,3 +17,5 @@ Creative Portion:
 
 
 Note: we used some code from this tutorial: http://psitsmike.com/2011/10/node-js-and-socket-io-multiroom-chat-tutorial/. Whenever we took code from it to use, we cited it in our code for any block we used it from. Based on the academic integrity policy, I hope our citations are okay.
+
+Note 2: The messages and updates in the actual chat screen are all the way at the bottom of the html past all the buttons and textboxes.
